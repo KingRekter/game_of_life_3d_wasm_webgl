@@ -42,7 +42,7 @@ Building the project requires the Emscripten SDK.
 
 2.  **Compile the C++ source to WASM and HTML:**
     ```bash
-    emcc -o gameoflife3d.html main.cpp -s USE_GLFW=3 -s USE_WEBGL2=1 -s FULL_ES3=1 -s ALLOW_MEMORY_GROWTH=1 -s ASYNCIFY -O3 -std=c++17 -Ilib
+    emcc -o index.html main.cpp -s USE_GLFW=3 -s USE_WEBGL2=1 -s FULL_ES3=1 -s ALLOW_MEMORY_GROWTH=1 -s ASYNCIFY -O3 -std=c++17 -Ilib
     ```
 
 3.  **Launch a local web server:**
@@ -50,7 +50,7 @@ Building the project requires the Emscripten SDK.
     python3 -m http.server
     ```
 
-4.  **Access the application** by navigating to `http://localhost:8000/gameoflife3d.html` in your browser.
+4.  **Access the application** by navigating to `http://localhost:8000/index.html` in your browser.
 
 ## Controls
 

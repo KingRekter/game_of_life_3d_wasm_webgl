@@ -1,5 +1,7 @@
 # 3D WebAssembly Implementation of Conway's Game of Life
 
+[**Live Demo**](https://kingrekter.github.io/game_of_life_3d_wasm_webgl/)
+
 This project is an advanced implementation of Conway's Game of Life, developed in C++ and compiled to WebAssembly (WASM) for high-performance execution in modern web browsers. It leverages WebGL for 3D hardware-accelerated rendering of a massive 1920x1080 grid, capable of simulating and visualizing hundreds of thousands of cells in real-time.
 
 ## Technical Overview

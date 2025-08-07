@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conway's Game of Life 3D</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Variables for easy theme management */
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --primary-text-color: #e0e0e0;
+            --secondary-text-color: #a0a0a0;
+            --accent-color: #03dac6;
+            --key-bg-color: #333333;
+            --key-border-color: #555555;
+            --status-color: #ffcc00;
+        }
+
+        /* General Body and Reset Styles */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 2rem;
+            background-color: var(--bg-color);
+            color: var(--primary-text-color);
+            font-family: 'Roboto Mono', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Main Container */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--accent-color);
+            text-shadow: 0 0 10px rgba(3, 218, 198, 0.3);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Status Message */
+        #status {
+            margin: 1rem 0 2rem 0;
+            color: var(--status-color);
+            font-weight: bold;
+            min-height: 1.5em; /* Prevent layout shift */
+        }
+
+        /* Responsive Canvas Container */
+        .canvas-container {
+            width: 100%;
+            max-width: 1920px; /* Max render size */
+            margin: 0 auto 2rem auto;
+            aspect-ratio: 16 / 9; /* Maintain 1920x1080 aspect ratio */
+            background-color: #000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            overflow: hidden; /* Ensures canvas stays within rounded corners */
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Controls Section using CSS Grid */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            text-align: left;
+        }
+
+        .control-group {
+            background-color: var(--surface-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #2a2a2a;
+        }
+
+        .control-group h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 0.5rem;
+        }
+
+        .control-group p {
+            margin: 0.5rem 0;
+            color: var(--secondary-text-color);
+            line-height: 1.6;
+        }
+        
+        /* Styled Keyboard Keys */
+        code {
+            background-color: var(--key-bg-color);
+            color: var(--primary-text-color);
+            padding: 0.2em 0.5em;
+            border-radius: 4px;
+            border: 1px solid var(--key-border-color);
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.9em;
+            box-shadow: 0 2px 0 var(--key-border-color);
+        }
+
+        /* Media Query for smaller screens */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Conway's Game of Life 3D</h1>
+        <div id="status">Loading...</div>
+        
+        <div class="canvas-container">
+            <canvas id="canvas" width="1920" height="1080"></canvas>
+        </div>
+        
+        <div class="controls-grid">
+            <div class="control-group">
+                <h3>Simulation Controls</h3>
+                <p><code>Space</code>: Pause/Resume</p>
+                <p><code>R</code>: Reset Simulation</p>
+                <p><code>1</code>-<code>4</code>: Load Patterns</p>
+                <p><code>+/-</code>: Adjust Speed</p>
+                <p><code>H</code>: Toggle Overlay</p>
+                <p><code>[/]</code>: Color Spread</p>
+                 <p><code>C</code>: Cycle Colors</p>
+            </div>
+            
+            <div class="control-group">
+                <h3>Camera Controls</h3>
+                <p><code>WASD</code> / <code>Arrows</code>: Rotate</p>
+                <p><code>T</code>: Toggle Auto-rotate</p>
+                <p><code>Left Mouse</code>: Drag to Rotate</p>
+                <p><code>Home</code> / <code>Numpad-5</code>: Reset View</p>
+            </div>
+            
+            <div class="control-group">
+                <h3>Panning & Zoom</h3>
+                <p><code>IJKL</code> / <code>Numpad</code>: Pan</p>
+                <p><code>Middle/Right Mouse</code>: Drag to Pan</p>
+                <p><code>Q/E</code>: Zoom In/Out</p>
+                <p><code>Mouse Wheel</code>: Zoom</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var Module = {
+            canvas: (function() {
+                const canvas = document.getElementById('canvas');
+                canvas.addEventListener("webglcontextlost", function(e) {
+                    alert('WebGL context lost. You will need to reload the page.');
+                    e.preventDefault();
+                }, false);
+                return canvas;
+            })(),
+            setStatus: function(text) {
+                const statusElement = document.getElementById('status');
+                if (statusElement) {
+                    if (text) {
+                        statusElement.innerHTML = text;
+                        statusElement.style.display = 'block';
+                    } else {
+                        // Instead of hiding, let's clear it to prevent layout shift
+                        statusElement.innerHTML = '&nbsp;'; 
+                    }
+                }
+            },
+            totalDependencies: 0,
+            monitorRunDependencies: function(left) {
+                this.totalDependencies = Math.max(this.totalDependencies, left);
+                Module.setStatus(left ? `Preparing... (${this.totalDependencies - left}/${this.totalDependencies})` : 'All downloads complete.');
+            }
+        };
+        
+        Module.setStatus('Downloading...');
+        
+        window.onerror = function(event, source, lineno, colno, error) {
+             Module.setStatus('An error occurred. See browser console for details.');
+             console.error('Error:', error);
+        };
+    </script>
+    <script async type="text/javascript" src="gameoflife3d.js"></script>
+</body>
+</html>
